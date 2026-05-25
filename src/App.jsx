@@ -80,6 +80,45 @@ const bossAttacks = [
   { attack: "Завтрак без телефона", hp: 20 },
 ];
 
+const regularQuests = [
+  { branch: "Тело", quest: "Прогулка 30+ минут", xp: 20, note: "лёгкая физическая база" },
+  { branch: "Тело", quest: "Прогулка 60+ минут", xp: 40, note: "сильнее влияет на энергию" },
+  { branch: "Тело", quest: "Приготовил нормальную еду", xp: 30, note: "готовка и питание идут в тело" },
+  { branch: "Тело", quest: "Закупил нормальные продукты", xp: 30, note: "поддержка нормального питания" },
+  { branch: "Тело", quest: "День без жёсткого пищевого мусора", xp: 30, note: "без явного пищевого слива" },
+  { branch: "Тело", quest: "Нормальное питание за день", xp: 30, note: "по честной оценке" },
+  { branch: "Капитал", quest: "30 минут работы по Brelkof", xp: 20, note: "цифры, логистика, процессы" },
+  { branch: "Капитал", quest: "60 минут работы по Brelkof", xp: 40, note: "осмысленный рабочий блок" },
+  { branch: "Капитал", quest: "90 минут работы по Brelkof", xp: 60, note: "глубокий рабочий блок" },
+  { branch: "Капитал", quest: "Обновил финансовую таблицу", xp: 40, note: "контроль денег" },
+  { branch: "Капитал", quest: "Посчитал остатки / риск стокаута", xp: 50, note: "предотвращение потерь" },
+  { branch: "Капитал", quest: "Разобрал выплаты WB / Ozon", xp: 60, note: "сверка денег" },
+  { branch: "Капитал", quest: "Прогноз продаж / кэшфлоу", xp: 70, note: "управленческая ясность" },
+  { branch: "Влияние", quest: "30 минут работы над контентом", xp: 20, note: "YouTube, сценарии, подача" },
+  { branch: "Влияние", quest: "60 минут работы над контентом", xp: 40, note: "устойчивый блок" },
+  { branch: "Влияние", quest: "90 минут работы над контентом", xp: 60, note: "глубокий блок" },
+  { branch: "Влияние", quest: "Исследование темы", xp: 40, note: "сбор фактуры / референсов" },
+  { branch: "Влияние", quest: "Черновая запись / озвучка", xp: 50, note: "тренировка публичности" },
+  { branch: "Влияние", quest: "Монтаж фрагмента", xp: 60, note: "движение к публикации" },
+  { branch: "Разум", quest: "Чтение 30 минут", xp: 25, note: "обычное чтение" },
+  { branch: "Разум", quest: "Чтение 60 минут", xp: 50, note: "глубокое чтение" },
+  { branch: "Разум", quest: "Заметка с выводом", xp: 25, note: "не просто прочитал, а извлёк мысль" },
+  { branch: "Разум", quest: "Письменный разбор мысли", xp: 30, note: "структурирование" },
+  { branch: "Разум", quest: "Сформулировал проверяемую гипотезу", xp: 40, note: "идея, которую можно испытать" },
+  { branch: "Воля", quest: "Выбрал главный квест утром", xp: 20, note: "день стал выбранным" },
+  { branch: "Воля", quest: "Сделал главное дело дня", xp: 50, note: "главный удар по инертности" },
+  { branch: "Воля", quest: "10 минут порядка", xp: 10, note: "база не разваливается" },
+  { branch: "Воля", quest: "20 минут порядка", xp: 20, note: "уборка, посуда, порядок" },
+  { branch: "Воля", quest: "30 минут порядка", xp: 30, note: "заметный reset" },
+  { branch: "Воля", quest: "Посуда / кухня в порядок", xp: 20, note: "бытовая база" },
+  { branch: "Воля", quest: "Стирка запущена", xp: 15, note: "бытовой цикл" },
+  { branch: "Воля", quest: "Стирка развешена", xp: 15, note: "не бросил процесс" },
+  { branch: "Воля", quest: "Разложил чистые вещи", xp: 20, note: "закрытие хвоста" },
+  { branch: "Воля", quest: "Рабочий стол в порядок", xp: 20, note: "среда для фокуса" },
+  { branch: "Воля", quest: "Разобрал завал", xp: 40, note: "то, что мозолило глаза" },
+  { branch: "Воля", quest: "Недельный reset квартиры", xp: 60, note: "крупное восстановление базы" },
+];
+
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 function loadState() {
@@ -548,6 +587,27 @@ export default function App() {
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">Максимум 100 HP урона боссу в день.</div>
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">XP не отнимается. Штрафы снимают кристаллы.</div>
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">Если выбрал квест из списка, XP подставится автоматически.</div>
+            </div>
+          </Section>
+        </div>
+        <div className="mt-4">
+          <Section title="Справочник обычных квестов" right={<span className="text-xs text-zinc-500">подсказка для ручного XP</span>}>
+            <div className="overflow-x-auto rounded-2xl border border-zinc-800">
+              <table className="w-full min-w-[840px] text-sm">
+                <thead className="bg-zinc-900 text-left text-xs uppercase tracking-[0.16em] text-zinc-500">
+                  <tr><th className="px-3 py-3">Ветка</th><th className="px-3 py-3">Обычный квест</th><th className="px-3 py-3 text-right">XP</th><th className="px-3 py-3">Комментарий</th></tr>
+                </thead>
+                <tbody>
+                  {regularQuests.map((q) => (
+                    <tr key={`${q.branch}-${q.quest}`} className="border-t border-zinc-800">
+                      <td className="px-3 py-3 text-zinc-400">{q.branch}</td>
+                      <td className="px-3 py-3">{q.quest}</td>
+                      <td className="px-3 py-3 text-right font-medium">{q.xp}</td>
+                      <td className="px-3 py-3 text-zinc-500">{q.note}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </Section>
         </div>
