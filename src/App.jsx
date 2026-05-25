@@ -15,7 +15,7 @@ import {
   Upload,
 } from "lucide-react";
 
-const STORAGE_KEY = "solo-leveling-life-os-minimal-v1";
+const STORAGE_KEY = "solo-leveling-life-os-minimal-v2";
 
 const initialState = {
   rank: "E",
@@ -53,7 +53,6 @@ const rewards = [
 
 const penaltyTypes = [
   { name: "Не выбрал главный квест", price: 1 },
-  { name: "Не сделал дневной минимум", price: 2 },
   { name: "Не атаковал босса", price: 1 },
   { name: "Утром залип в телефон", price: 1 },
   { name: "2 провала подряд", price: 3 },
@@ -62,15 +61,13 @@ const penaltyTypes = [
 ];
 
 const questExamples = [
-  { branch: "Капитал", quest: "90 минут глубокой работы по Brelkof", xp: 60 },
-  { branch: "Капитал", quest: "Разобрать цифры бизнеса и сделать 1 вывод", xp: 70 },
-  { branch: "Капитал", quest: "Закрыть операционную задачу", xp: 80 },
-  { branch: "Влияние", quest: "90 минут работы над YouTube / контентом", xp: 60 },
-  { branch: "Влияние", quest: "Написать законченный блок сценария", xp: 70 },
-  { branch: "Влияние", quest: "Сделать публичный шаг", xp: 80 },
-  { branch: "Воля", quest: "Сделать главное дело дня до 13:00", xp: 70 },
-  { branch: "Воля", quest: "Закрыть отложенную задачу", xp: 80 },
-  { branch: "Воля", quest: "Утро без автопилота", xp: 80 },
+  { branchKey: "capital", branch: "Капитал", quest: "90 минут глубокой работы по Brelkof", xp: 60 },
+  { branchKey: "capital", branch: "Капитал", quest: "Разобрать цифры бизнеса и сделать 1 вывод", xp: 70 },
+  { branchKey: "influence", branch: "Влияние", quest: "90 минут работы над YouTube / контентом", xp: 60 },
+  { branchKey: "influence", branch: "Влияние", quest: "Написать законченный блок сценария", xp: 70 },
+  { branchKey: "mind", branch: "Разум", quest: "Тренировка навыка 60 минут", xp: 60 },
+  { branchKey: "will", branch: "Воля", quest: "Закрыть отложенную задачу", xp: 80 },
+  { branchKey: "will", branch: "Воля", quest: "Утро без автопилота", xp: 80 },
 ];
 
 const bossAttacks = [
@@ -187,13 +184,39 @@ function Button({ children, variant = "primary", className = "", ...props }) {
   return <button {...props} className={`${base} ${styles} ${className}`}>{children}</button>;
 }
 
+function MorningFogBoss() {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.10),_transparent_58%)]" />
+      <div className="absolute left-4 top-4 h-16 w-16 rounded-full border border-zinc-700 bg-zinc-950/80 blur-sm" />
+      <div className="relative flex flex-col items-center text-center">
+        <div className="relative mb-3 flex h-36 w-36 items-center justify-center rounded-full border border-zinc-700 bg-zinc-950 shadow-2xl shadow-black">
+          <div className="absolute h-28 w-28 rounded-full bg-zinc-800 blur-xl" />
+          <div className="relative h-24 w-28 rounded-[45%] bg-zinc-300 shadow-inner">
+            <div className="absolute -left-4 top-9 h-12 w-14 rounded-full bg-zinc-400" />
+            <div className="absolute -right-4 top-8 h-14 w-16 rounded-full bg-zinc-400" />
+            <div className="absolute left-7 top-9 h-2 w-5 rounded-full bg-zinc-950" />
+            <div className="absolute right-7 top-9 h-2 w-5 rounded-full bg-zinc-950" />
+            <div className="absolute left-1/2 top-14 h-1 w-8 -translate-x-1/2 rounded-full bg-zinc-700" />
+            <div className="absolute -bottom-5 left-5 h-10 w-6 rounded-full bg-zinc-400 blur-[1px]" />
+            <div className="absolute -bottom-4 right-7 h-8 w-5 rounded-full bg-zinc-500 blur-[1px]" />
+          </div>
+          <div className="absolute -right-2 bottom-4 rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1 text-[10px] text-zinc-300">07:00</div>
+        </div>
+        <div className="text-sm font-semibold text-zinc-100">Утренний туман</div>
+        <div className="mt-1 text-xs text-zinc-500">сонливость · телефон · откладывание старта</div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [state, setState] = useState(loadState);
   const [entry, setEntry] = useState({
     date: todayIso(),
     day: "Пн",
     mainQuest: "",
-    dailyMinimum: "",
+    selectedQuest: "",
     body: 0,
     capital: 0,
     influence: 0,
@@ -222,6 +245,21 @@ export default function App() {
     const latest = state.entries.slice(0, 7);
     return Object.fromEntries(branches.map((b) => [b.key, sum(latest, b.key)]));
   }, [state.entries]);
+
+  function applyQuest(questName) {
+    if (!questName) {
+      setEntry((prev) => ({ ...prev, selectedQuest: "" }));
+      return;
+    }
+    const quest = questExamples.find((q) => q.quest === questName);
+    if (!quest) return;
+    setEntry((prev) => ({
+      ...prev,
+      selectedQuest: quest.quest,
+      mainQuest: quest.quest,
+      [quest.branchKey]: Number(prev[quest.branchKey] || 0) + quest.xp,
+    }));
+  }
 
   function saveEntry() {
     const hpDamage = Math.min(100, Math.max(0, Number(entry.hpDamage || 0)));
@@ -252,7 +290,7 @@ export default function App() {
       date: todayIso(),
       day: "Пн",
       mainQuest: "",
-      dailyMinimum: "",
+      selectedQuest: "",
       body: 0,
       capital: 0,
       influence: 0,
@@ -363,9 +401,14 @@ export default function App() {
               <Field label="HP урон боссу"><Input type="number" min="0" max="100" value={entry.hpDamage} onChange={(e) => setEntry({ ...entry, hpDamage: e.target.value })} /></Field>
             </div>
 
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <Field label="Главный квест дня"><Input value={entry.mainQuest} onChange={(e) => setEntry({ ...entry, mainQuest: e.target.value })} placeholder="например: 90 минут Brelkof" /></Field>
-              <Field label="Дневной минимум"><Input value={entry.dailyMinimum} onChange={(e) => setEntry({ ...entry, dailyMinimum: e.target.value })} placeholder="минимум, который держит день" /></Field>
+            <div className="mt-3 grid gap-3 md:grid-cols-[1fr_1fr]">
+              <Field label="Выбрать квест дня">
+                <Select value={entry.selectedQuest} onChange={(e) => applyQuest(e.target.value)}>
+                  <option value="">Выбери квест из списка</option>
+                  {questExamples.map((q) => <option key={q.quest} value={q.quest}>{q.branch}: {q.quest} · {q.xp} XP</option>)}
+                </Select>
+              </Field>
+              <Field label="Или записать вручную"><Input value={entry.mainQuest} onChange={(e) => setEntry({ ...entry, mainQuest: e.target.value })} placeholder="что сделал / главный квест дня" /></Field>
             </div>
 
             <div className="mt-4 overflow-x-auto rounded-2xl border border-zinc-800">
@@ -374,7 +417,7 @@ export default function App() {
                   <tr>
                     <th className="px-3 py-3">Навык</th>
                     <th className="px-3 py-3">XP</th>
-                    <th className="px-3 py-3">Смысл</th>
+                    <th className="px-3 py-3">Как использовать</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -382,7 +425,7 @@ export default function App() {
                     <tr key={key} className="border-t border-zinc-800">
                       <td className="px-3 py-3 font-medium"><span className="inline-flex items-center gap-2"><Icon size={16} className="text-zinc-500" />{label}</span></td>
                       <td className="w-36 px-3 py-3"><Input type="number" min="0" value={entry[key]} onChange={(e) => setEntry({ ...entry, [key]: e.target.value })} /></td>
-                      <td className="px-3 py-3 text-zinc-500">запиши только число, справочник ниже</td>
+                      <td className="px-3 py-3 text-zinc-500">можно выбрать квест выше или вписать XP вручную</td>
                     </tr>
                   ))}
                 </tbody>
@@ -419,10 +462,7 @@ export default function App() {
                   <div key={n} className={`rounded-lg border px-2 py-2 text-center text-xs ${bossDamage >= n * 100 ? "border-zinc-100 bg-zinc-100 text-zinc-950" : "border-zinc-800 bg-zinc-900 text-zinc-500"}`}>{n}</div>
                 ))}
               </div>
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-                <div className="mb-3 flex items-center gap-2 text-sm font-semibold"><Flame size={16} /> Утренний туман</div>
-                <p className="text-sm text-zinc-500">Сонливость, телефон, откладывание старта. Максимум 100 HP урона в день.</p>
-              </div>
+              <MorningFogBoss />
               <div className="overflow-hidden rounded-2xl border border-zinc-800">
                 <table className="w-full text-sm">
                   <thead className="bg-zinc-900 text-left text-xs uppercase tracking-[0.16em] text-zinc-500"><tr><th className="px-3 py-2">Атака</th><th className="px-3 py-2 text-right">HP</th></tr></thead>
@@ -507,7 +547,7 @@ export default function App() {
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">1 главный квест в день.</div>
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">Максимум 100 HP урона боссу в день.</div>
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">XP не отнимается. Штрафы снимают кристаллы.</div>
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">Google Sheets пока остаётся справочником и резервной базой.</div>
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">Если выбрал квест из списка, XP подставится автоматически.</div>
             </div>
           </Section>
         </div>
